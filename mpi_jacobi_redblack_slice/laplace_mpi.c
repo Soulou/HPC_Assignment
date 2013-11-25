@@ -100,6 +100,7 @@ void compute_black(double ** old_m, double ** new_m, int n, int m) {
  *
  */
 void exchange_halo(double ** matrix, int n, int m, int rank, int nb_nodes) {
+	MPI_Status statuses[4];
 	MPI_Request requests[4];
 	for(int i = 0; i < 4; i++) {
 		requests[i] = MPI_REQUEST_NULL;
@@ -115,7 +116,7 @@ void exchange_halo(double ** matrix, int n, int m, int rank, int nb_nodes) {
 	if(rank != nb_nodes-1)
 		MPI_Irecv(matrix[n-1], m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &requests[3]);
 
-	MPI_Waitall(4, requests, NULL);
+	MPI_Waitall(4, requests, statuses);
 }
 
 int main(int argc, char * argv[])
