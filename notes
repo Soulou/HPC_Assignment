@@ -1,0 +1,27 @@
+Analytical -> PHI(x,y)
+Analytical Truncated -> PHI_n(x_i, y_i)
+
+|| PHI(x,y) - PHI_n(x_i, y_i) ||
+
+Calculer la convergence pour l'analytique
+
+Tp = T(N * p+2 * Jacobi steps) + T(n * dataexchange)
+Sp = Tp / Ti
+
+Sp Speedup
+Tp Total time
+
+Unit testing, what data exchange should append for precise step
+
+MPI
+
+__________________
+|        |        | 
+|   1    |   2    | 
+|        |        | 
+|________|________| 
+|        |        | 
+|   2    |   1    | 
+|        |        | 
+|________|________|
+
