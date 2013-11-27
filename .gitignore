@@ -1,0 +1,15 @@
+analytical/data2
+analytical/laplace_analytical
+mpi_jacobi_redblack_slice/laplace_mpi
+mpi_jacobi_slice/laplace_mpi
+report/report.aux
+report/report.dvi
+report/report.fdb_latexmk
+report/report.fls
+report/report.log
+report/report.out
+report/report.synctex.gz
+report/report.tex~
+report/report.toc
+serial/laplace_serial
+
