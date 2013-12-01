@@ -25,13 +25,15 @@
 #define INFINITE 30
 
 void print_data_matrix(mpfr_t ** matrix, int n) {
+	FILE * f = fopen("laplace_results.txt", "w");
 	for(int i = 0; i < n; i++) {
 		for(int j = 0; j < n; j++) {
-			printf("%1.10lf %1.10lf ", (double)i/(n-1.), (double)j/(n-1.));
-			mpfr_printf("%0.30RNf\n", matrix[i][j]);
+			fprintf(f,"%1.10lf %1.10lf ", (double)i/(n-1.), (double)j/(n-1.));
+			mpfr_fprintf(f, "%0.30RNf\n", matrix[i][j]);
 		}
-		printf("\n");
+		fprintf(f,"\n");
 	}
+	fclose(f);
 }
 
 mpfr_t ** init_matrix(int n) {

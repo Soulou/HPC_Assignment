@@ -23,17 +23,23 @@ while !f1.eof? && !f2.eof? do
   d1 = BigDecimal.new(r1)
   d2 = BigDecimal.new(r2)
   diff = (d1 - d2).abs
-  if (diff / d1).nan? || (diff / d1).infinite?
-    # puts "#{r1} #{r2} 0 0"
-    puts "0 0"
+  if d1 > d2
+    res = diff / d1
   else
-    # puts "#{r1} #{r2} #{diff} #{(diff / d1).round(2).to_f}"
-    puts "#{(diff / d1).round(2).to_f}"
-    avg_sum += (diff / d1)
+    res = diff / d2
+  end
+
+  if res.nan? || res.infinite? || res > 100
+    # puts "#{r1} #{r2} 0 0"
+    # puts "0 0"
+  else
+    # puts "#{r1} #{r2} #{diff} #{(diff / d1).to_f}"
+    # puts "#{(diff / d1).round(2).to_f}"
+    avg_sum += res
   end
   count += 1
 end
 
-puts "Average error #{(avg_sum / count).to_f}"
+puts (avg_sum / count).to_f.to_s
 
 
