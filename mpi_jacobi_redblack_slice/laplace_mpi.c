@@ -161,6 +161,8 @@ int main(int argc, char * argv[])
 	double it_error = 0.0;
 	double global_error = 0.0;
 
+	double t1, t2;
+	t1 = MPI_Wtime();
 
 	int itnb = 0;
 	do {
@@ -205,12 +207,14 @@ int main(int argc, char * argv[])
 		for(int j = 0; j < m; j++)
 			send[(i-1)*m+j] = new_m[i][j];
 
+	t2 = MPI_Wtime();
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Gather(send, send_size, MPI_DOUBLE, result, send_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	free(send);
 
 	// The node 0 builds the global matrix and print the data
 	if(!rank) {
+		printf("Execution time: %1.2lf", t2-t1);
 		/* printf("Result\n"); */
 		/* print_array(result, result_size); */
 		double ** global_matrix = init_matrix_from_array(result, N);

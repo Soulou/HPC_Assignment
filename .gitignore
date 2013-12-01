@@ -13,3 +13,5 @@ report/report.tex~
 report/report.toc
 serial/laplace_serial
 
+mpi_gauss-seidel_slice/laplace_results.txt
+mpi_gauss-seidel_slice/laplace_mpi

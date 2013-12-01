@@ -81,13 +81,13 @@ void exchange_halo(double ** matrix, int n, int m, int rank, int nb_nodes) {
 
 	// To test: matrix[n-1]+1, m-2 to send the minimum
 	if(rank != 0)
-		MPI_Isend(matrix[1], m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &requests[0]);
-	if(rank != nb_nodes-1)
-		MPI_Isend(matrix[n-2], m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &requests[1]);
-	if(rank != 0)
 		MPI_Irecv(matrix[0], m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &requests[2]);
 	if(rank != nb_nodes-1)
 		MPI_Irecv(matrix[n-1], m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &requests[3]);
+	if(rank != 0)
+		MPI_Isend(matrix[1], m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &requests[0]);
+	if(rank != nb_nodes-1)
+		MPI_Isend(matrix[n-2], m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &requests[1]);
 
 	MPI_Waitall(4, requests, statuses);
 }
@@ -134,6 +134,9 @@ int main(int argc, char * argv[])
 	double it_error = 0.0;
 	double global_error = 0.0;
 
+	double t1, t2;
+	t1 = MPI_Wtime();
+
 	int itnb = 0;
 	do {
 		itnb++;
@@ -179,12 +182,14 @@ int main(int argc, char * argv[])
 		for(int j = 0; j < m; j++)
 			send[(i-1)*m+j] = new_m[i][j];
 
+	t2 = MPI_Wtime();
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Gather(send, send_size, MPI_DOUBLE, result, send_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	free(send);
 
 	// The node 0 builds the global matrix and print the data
 	if(!rank) {
+		printf("Execution Time: %1.2lf\n", t2-t1);
 		/* printf("Result\n"); */
 		/* print_array(result, result_size); */
 		double ** global_matrix = init_matrix_from_array(result, N);
