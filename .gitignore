@@ -1,7 +1,5 @@
 analytical/data2
 analytical/laplace_analytical
-mpi_jacobi_redblack_slice/laplace_mpi
-mpi_jacobi_slice/laplace_mpi
 report/report.aux
 report/report.dvi
 report/report.fdb_latexmk
@@ -12,6 +10,8 @@ report/report.synctex.gz
 report/report.tex~
 report/report.toc
 serial/laplace_serial
-
-mpi_gauss-seidel_slice/laplace_results.txt
-mpi_gauss-seidel_slice/laplace_mpi
+mpi/mpi_gs_redblack_slice_bin
+mpi/mpi_gs_slice
+mpi/mpi_jacobi_square
+*.txt
+*_bin

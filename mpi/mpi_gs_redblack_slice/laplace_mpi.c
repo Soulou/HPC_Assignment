@@ -30,9 +30,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include "mpi.h"
-#include "matrix_norms.h"
-#include "matrix_utils.h"
-#include "output.h"
+#include "../common/matrix_norms.h"
+#include "../common/matrix_utils.h"
+#include "../common/output.h"
 
 /*
  * @param old_m The data comes from this matrix

@@ -30,9 +30,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include "mpi.h"
-#include "matrix_norms.h"
-#include "matrix_utils.h"
-#include "output.h"
+#include "../common/matrix_norms.h"
+#include "../common/matrix_utils.h"
+#include "../common/output.h"
 
 /*
  * @param old_m The data comes from this matrix
@@ -40,10 +40,37 @@
  * @param n Dimension 1 of the matrices
  * @param m Dimension 2 of the matrices
  * @brief Do an iteration of Jacobi
+ * ______________________
+ * |w 0       --       0|
+ * |w R  B  R  B  R  B  |
+ * |w B  R  B  R  B  R  |
+ * |w                  ||              
+ * |w        ...       ||              
+ * |w                   |              
+ * |w B  R  B  R  B  R  |              
+ * |w 0      --        0|
+ * ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
  */
-void compute(double ** old_m, double ** new_m, int n, int m) {
-	for(int i = 1; i < n-1; i++) {
-		for(int j = 1; j < m-1 ; j++) {
+void compute_red(double ** old_m, double ** new_m, int n, int m) {
+	for(int i = 1; i < n-1; i+=2) {
+		for(int j = 1; j < m-1 ; j+=2) {
+			new_m[i][j] = (old_m[i-1][j] + old_m[i+1][j] + old_m[i][j-1] + old_m[i][j+1])/4.0;
+		}
+	}
+	for(int i = 2; i < n-1; i+=2) {
+		for(int j = 2; j < m-1 ; j+=2) {
+			new_m[i][j] = (old_m[i-1][j] + old_m[i+1][j] + old_m[i][j-1] + old_m[i][j+1])/4.0;
+		}
+	}
+}
+void compute_black(double ** old_m, double ** new_m, int n, int m) {
+	for(int i = 1; i < n-1; i+=2) {
+		for(int j = 2; j < m-1 ; j+=2) {
+			new_m[i][j] = (old_m[i-1][j] + old_m[i+1][j] + old_m[i][j-1] + old_m[i][j+1])/4.0;
+		}
+	}
+	for(int i = 2; i < n-1; i+=2) {
+		for(int j = 1; j < m-1 ; j+=2) {
 			new_m[i][j] = (old_m[i-1][j] + old_m[i+1][j] + old_m[i][j-1] + old_m[i][j+1])/4.0;
 		}
 	}
@@ -134,6 +161,9 @@ int main(int argc, char * argv[])
 	double it_error = 0.0;
 	double global_error = 0.0;
 
+	double t1, t2;
+	t1 = MPI_Wtime();
+
 	int itnb = 0;
 	do {
 		itnb++;
@@ -142,13 +172,11 @@ int main(int argc, char * argv[])
 
 		prev_m = new_m;
 		new_m = init_matrix(n, m, w, rank, nb_nodes);
-		compute(prev_m, new_m, n, m);
-		exchange_halo(new_m, n, m, rank, nb_nodes);
 
-		/* compute_red(new_m, n, m); */
-		/* exchange_red(new_m, n, m, rank, nb_nodes); */
-		/* compute_black(new_m, n, m); */
-		/* exchange_black(new_m, n, m, rank, nb_nodes); */
+		compute_red(prev_m, new_m, n, m);
+		exchange_halo(new_m, n, m, rank, nb_nodes);
+		compute_black(prev_m, new_m, n, m);
+		exchange_halo(new_m, n, m, rank, nb_nodes);
 
 		// Every 30 iterations we check the convergence
 		if(itnb % 30 == 0) {
@@ -179,12 +207,14 @@ int main(int argc, char * argv[])
 		for(int j = 0; j < m; j++)
 			send[(i-1)*m+j] = new_m[i][j];
 
+	t2 = MPI_Wtime();
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Gather(send, send_size, MPI_DOUBLE, result, send_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	free(send);
 
 	// The node 0 builds the global matrix and print the data
 	if(!rank) {
+		printf("Execution time: %1.2lf", t2-t1);
 		/* printf("Result\n"); */
 		/* print_array(result, result_size); */
 		double ** global_matrix = init_matrix_from_array(result, N);

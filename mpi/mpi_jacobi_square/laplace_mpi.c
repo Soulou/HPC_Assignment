@@ -30,9 +30,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include "mpi.h"
-#include "matrix_norms.h"
-#include "matrix_utils.h"
-#include "output.h"
+#include "../common/matrix_norms.h"
+#include "../common/matrix_utils.h"
+#include "../common/output.h"
 
 /*
  * @param old_m The data comes from this matrix
@@ -41,10 +41,10 @@
  * @param m Dimension 2 of the matrices
  * @brief Do an iteration of Jacobi
  */
-void compute(double ** matrix, int n, int m) {
+void compute(double ** old_m, double ** new_m, int n, int m) {
 	for(int i = 1; i < n-1; i++) {
 		for(int j = 1; j < m-1 ; j++) {
-			matrix[i][j] = (matrix[i-1][j] + matrix[i+1][j] + matrix[i][j-1] + matrix[i][j+1]) * 0.25;
+			new_m[i][j] = (old_m[i-1][j] + old_m[i+1][j] + old_m[i][j-1] + old_m[i][j+1])/4.0;
 		}
 	}
 }
@@ -81,13 +81,13 @@ void exchange_halo(double ** matrix, int n, int m, int rank, int nb_nodes) {
 
 	// To test: matrix[n-1]+1, m-2 to send the minimum
 	if(rank != 0)
-		MPI_Irecv(matrix[0], m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &requests[2]);
-	if(rank != nb_nodes-1)
-		MPI_Irecv(matrix[n-1], m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &requests[3]);
-	if(rank != 0)
 		MPI_Isend(matrix[1], m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &requests[0]);
 	if(rank != nb_nodes-1)
 		MPI_Isend(matrix[n-2], m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &requests[1]);
+	if(rank != 0)
+		MPI_Irecv(matrix[0], m, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &requests[2]);
+	if(rank != nb_nodes-1)
+		MPI_Irecv(matrix[n-1], m, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &requests[3]);
 
 	MPI_Waitall(4, requests, statuses);
 }
@@ -134,9 +134,6 @@ int main(int argc, char * argv[])
 	double it_error = 0.0;
 	double global_error = 0.0;
 
-	double t1, t2;
-	t1 = MPI_Wtime();
-
 	int itnb = 0;
 	do {
 		itnb++;
@@ -144,10 +141,10 @@ int main(int argc, char * argv[])
 			free_matrix(prev_m, n);
 
 		prev_m = new_m;
-		new_m = copy_matrix(prev_m, n, m);
-		compute(new_m, n, m);
+		new_m = init_matrix(n, m, w, rank, nb_nodes);
+		compute(prev_m, new_m, n, m);
 		exchange_halo(new_m, n, m, rank, nb_nodes);
-		
+
 		/* compute_red(new_m, n, m); */
 		/* exchange_red(new_m, n, m, rank, nb_nodes); */
 		/* compute_black(new_m, n, m); */
@@ -182,14 +179,12 @@ int main(int argc, char * argv[])
 		for(int j = 0; j < m; j++)
 			send[(i-1)*m+j] = new_m[i][j];
 
-	t2 = MPI_Wtime();
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Gather(send, send_size, MPI_DOUBLE, result, send_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	free(send);
 
 	// The node 0 builds the global matrix and print the data
 	if(!rank) {
-		printf("Execution Time: %1.2lf\n", t2-t1);
 		/* printf("Result\n"); */
 		/* print_array(result, result_size); */
 		double ** global_matrix = init_matrix_from_array(result, N);
