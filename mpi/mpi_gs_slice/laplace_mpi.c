@@ -194,7 +194,7 @@ int main(int argc, char * argv[])
 		/* print_array(result, result_size); */
 		double ** global_matrix = init_matrix_from_array(result, N);
 		free(result);
-		print_data_matrix(global_matrix, N);
+		print_data_matrix(argv[0], nb_nodes, global_matrix, N);
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);

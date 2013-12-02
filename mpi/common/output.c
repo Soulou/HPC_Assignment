@@ -1,7 +1,9 @@
 #include "output.h"
 
-void print_data_matrix(double ** matrix, int n) {
-	FILE * f = fopen("laplace_results.txt", "w");
+void print_data_matrix(char * exec, int p, double ** matrix, int n) {
+	char buffer[256];
+	sprintf(buffer, "%s_P%d_N%d", exec, p, n);
+	FILE * f = fopen(buffer, "w");
 	for(int i = 0; i < n; i++) {
 		for(int j = 0; j < n; j++) {
 			fprintf(f, "%1.10lf %1.10lf %1.30lf\n", (double)i/(n-1.), (double)j/(n-1.), matrix[j][i]);
