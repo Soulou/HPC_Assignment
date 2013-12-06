@@ -1,0 +1,13 @@
+mpi_gs_redblack_slice_bin_P16_N1026
+0.03842525140230033
+mpi_gs_redblack_slice_bin_P1_N1026
+0.1049280653688199
+mpi_gs_redblack_slice_bin_P2_N1026
+0.0827550854878845
+mpi_gs_redblack_slice_bin_P32_N1026
+0.033835317834411086
+mpi_gs_redblack_slice_bin_P4_N1026
+0.06619889423024718
+mpi_gs_redblack_slice_bin_P8_N1026
+0.05071300196840724
+
