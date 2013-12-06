@@ -32,12 +32,20 @@ Usage:
 
 ### MPI Solutions
 
+Build:
+```
+cd mpi
+make -B
+```
+
 Usage:
 ```
 # N: Edge size of the matrix
 # w: Init value
 # e: Tolerance to check convergence
-./laplace_serial <N> <w> <e>
+./mpi_gs_redblack_slice_bin <N> <w> <e>
+./mpi_jacobi_redblack_slice_bin <N> <w> <e>
+./mpi_gs_slice_bin <N> <w> <e>
 ```
 
 > Jacobi and domain horizontal slicing

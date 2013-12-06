@@ -14,4 +14,5 @@ mpi/mpi_gs_redblack_slice_bin
 mpi/mpi_gs_slice
 mpi/mpi_jacobi_square
 laplace_results.txt
+laplace_analytical_results.txt
 *_bin

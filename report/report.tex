@@ -26,21 +26,22 @@
 \tableofcontents
 
 \begin{abstract}
-  The main goal of this work is to develop a parallel way to solve numerically Laplace's Equation by using OpenMPI,
+  The main goal of this work is to develop a parallel way to solve numerically Laplace's Equation by using OpenMPI
   and to analyze how this process accelerates the computation compare to the serial way to do, and how exact are the
-  results compare to the analytical solution. The using method in this project must have been Jacobi with red-black
+  results compared to the analytical solution. The using method in this project must have been Jacobi with red-black
   ordering. However there is no interest in doing red-black ordering with Jacobi as the old matrix has to be kept in
   memory, that's why I've decided to use Gauss Seidel method associated with red-black ordering.
   
   The complete source code of this project may be found on Github: \url{https://github.com/Soulou/HPC_Assignment}
-  It includes the analytical, the serial and the parallel methods, and additionaly the \LaTeX \hspace{5pt} source code of this
-  report.
+  It includes the analytical, the serial and the parallel methods, the scripts which have been used to define the
+  errors between results, how the benchmarks have been done, a link to the actual data resulting from the Astral
+  computation and additionaly the \LaTeX \hspace{5pt} source code of this report.
 \end{abstract}
 
 \section{The analytical solution}
 \subsection{Solving the equation by using Fourier series}
 
-Finding the analytical solution basically consists in solving:
+Finding the analytical solution basically consists in solving the following equation:
 2$$\frac{\partial^2 \phi}{\partial y^2} + \frac{\partial^2 \phi}{\partial x^2} = 0 \hspace{2em} x \in [0,1], y \in [0,1]$$
 
 \noindent The homogeneous boundary conditions are:
@@ -49,7 +50,7 @@ $$\phi(x,0) = 0 \hspace{3em} \phi(x,1) = 0 \hspace{3em} \phi(1,y) = 0$$
 \noindent The inhomogeneous boundary condition is:
 $$\phi(0,y) = sin^2(\pi y)$$
 
-\noindent After separating the variables, $\phi(x,y) = X(x)Y(y)$, so Laplace's equation becomes:
+\noindent After separating the variables: $\phi(x,y) = X(x)Y(y)$, so Laplace's equation becomes:
 $$\frac{1}{X}\frac{\partial^2 X}{\partial x^2} + \frac{1}{Y}\frac{\partial^2 Y}{\partial y^2} = 0$$
 
 \noindent Let: $$\frac{1}{Y}\frac{\partial^2 Y}{\partial y^2} = - k^2 \Leftrightarrow Y(y) = A_1\cos(k y) + B_1\sin(k y)$$ 
@@ -83,10 +84,10 @@ The Fourier coefficient is now $B_n \sinh(-n \pi)$:
 
 \subsection{Implementation of the solution}
   The implementation has been done with the C programming language. The only constraint of using this language is
-  that the result formula contains $\sinh(-n \pi)$. When $n$ gets bigger, a primitive variable type (double, long double)
+  that the resulting formula contains $\sinh(-n \pi)$. When $n$ gets bigger, a primitive variable type (double, long double)
   is not able anymore to have enough precision to compute correct results. This is why I've used the library
   GNU MPFR which is used to manipulate with high precision floating point numbers.
-  
+
 \subsection{Illustration of the analytical solution}
 
 \begin{figure}[h!]
@@ -113,10 +114,10 @@ $$i \in [2;k-1], j \in [2;k-1]$$
 
 \vspace{1em}
 
-As shown the figure~\ref{fig:stencil}, the current value is calculated from the four values which circle it.
-This is really convenient to implement, because by iterating by line as it is showed in the following schema, when
+As shown on the figure~\ref{fig:stencil}, the current value is calculated from the four values which circle it.
+This is really convenient to implement, because by iterating by line as in the following schema, when
 the point $o22$ is calculated, $\phi^{k+1}_{i-1,j}$ and $\phi^{k+1}_{i,j-1}$ have already been defined because they have been
-computed previously. Consequently eep a copy of the old matrix in memory, we can iterate
+computed previously. Consequently, keeping a copy of the old matrix in memory is not mandatory, it is possible to iterate
 on in directly.
   
 \begin{verbatim}
@@ -137,7 +138,7 @@ on in directly.
 Another important point, is the stopping condition. The following choice has been done: after each iteration 
 the norm of the difference between the newly computed matrix and the previous one is compared to a certain tolerance
 the user has to give as argument to the software. When this norm is close to 0, it means that the newly generated matrix is
-not different anymore from the previous one, The algorithms stops iterating at the precise point.
+not different anymore from the previous one. The algorithms stops iterating at that precise point.
 
 \[
   ||\phi^{k+1} - \phi^{k}|| < \epsilon
@@ -145,7 +146,7 @@ not different anymore from the previous one, The algorithms stops iterating at t
 
 \subsection{Aspect of the results}
 
-The results look similar as the results obtained in the analytical computation:
+The results look similar as those obtained in the analytical computation:
 
 \begin{figure}[h!]
   \centering
@@ -154,7 +155,7 @@ The results look similar as the results obtained in the analytical computation:
 
 \subsection{Validation of the implementation}
 
-To know if the results are accurate, the results of the numerical solutions are compared to he results of the analytical solution. In order to
+To know if the results are accurate, they are compared to the analytical solution. In order to
 achieve that, The small script: \texttt{diff\_results.rb} compares two result files by calculating the
 difference of each $\phi(x,y)$ and finally printing the average difference in percents. The following table shows the difference
 between the analytical implementation and the Gauss-Seidel serial version, for different sizes of domain and different error tolerances
@@ -182,8 +183,8 @@ N & \=e ,t = $10^{-2}$ & \=e, t = $10^{-3}$ & \=e, t = $10^{-4}$ & \=e, t = $10^
 There are different things observable in this table. First, whatever is the size of the domain,
 the precision of the results is better when the tolerance is decreasing. Then, the results look accurate when the 
 convergence tolerance is small enough. Actually when $t = 10^{-5}$ and $N \geq 60$, the numerical results are less
-than 5\% different from the analytical one. Finally, the bigger the domain, the small the required
-tolerance has to be to obtain good results. As a result, this way can be validated in order to measure the error and to detect the
+than 5\% different from the analytical one. Finally, the bigger the domain, the smaller the required
+tolerance has to be to obtain good results. So, this way can be validated in order to measure the error and to detect the
 convergence.
 
 \subsection{Investigation of the rate of convergence}
@@ -200,8 +201,8 @@ graph:
 \input convergence_rate
 
 At the beginning, the value is really low, because the error is decreasing fast, after a couple
-hundreds iterations, the content of the result matrix begins to be more stable and more precise,
-the is why the rate of convegence is approaching $1$. The bigger the asked precision, the closer
+hundreds iterations, the content of the result matrix begins to be more stable and more precise.
+This is why the rate of convegence is approaching $1$. The bigger the asked precision, the closer
 to $1$ will be the rate of convergence.
 
 \clearpage  
@@ -281,7 +282,7 @@ horizontal panels than vertical.
 
 \subsection{Data exchange and halo nodes}
 
-The main advantage of the panels compare to the squares is that each process only need to
+The main advantage of the panels compare to the squares is that each process only needs to
 communicate with a maximum of 2 other instances (the one above and the one underneath).
 Even if by dividing the domain in squares, some processes would need to communicate with
 4 other nodes, the amount of data which has to be exchanged by each process is smaller:
@@ -344,7 +345,7 @@ The algorithm is:
 reapeat 
   compute red values
   exchange red values from halo
-  compute black values
+  compute black values from new red values
   exchange black values from halo
   Every 30 iterations
     define new error
@@ -352,56 +353,21 @@ until the error is smaller than a given tolerance
 \end{verbatim}
 
 \begin{quote}
-> You can notice that in the case of parallel computing where are not checking the error at each
+> You can notice that in the case of parallel computing the error is not checked after each
 iteration. The reason is that to check the error, some additional calculations and
 data exchanges are required, so to optimize the speed, the algorithm avoids checking it every single time.
 \end{quote}
 
-A direct consequence is that red values are only dependant of black values and vice versa. So after
-calculating the new red values, The new black values can be obtained thanks to these recent numbers.
-It avoids doing an iteration from the old data set.
+A direct consequence is that red values are only dependant of black values and vice versa. After
+calculating the new red values, The new black values can be obtained thanks to these recent figures.
+It avoids doing an iteration from the old data set. (difference between Jacobi and Gauss-Seidel)
 
 Comparing to a standard division, the halo exchange is done in two different steps as it is shown in the
 pseudo-code algorithm above.
 
 \includegraphics[width=\textwidth]{images/redblack.png}
 
-
-Finally, the following performance model can be defined:
-
-\[
-S_p = \frac{T_{cr} + T_{cb} + T_{exr} + T_{exb}}{N_p}
-\]
-
-\begin{itemize}
-  \item{$S_p$: Speedup}
-  \item{$T_{cr}$: Red value computation}
-  \item{$T_{exr}$: Red value halo exchange}
-  \item{$T_{cb}$: Black value computation}
-  \item{$T_{exb}$: Black value halo exchange}
-  \item{$N_p$: Number of processor}
-\end{itemize}
-
-When $N_p = 1$\hspace{2em}$T_{exr} + T_{exb} \rightarrow 0$
-
-\subsection{Parallel execution on Astral}
-
-The main goal of high performance computing is to parallelize an algorithm to obtain results as fast
-as possible. A parallel algorithm may be slower that the original algorithm if only one processor is
-used, however this one is designed to able to reach high performance when it is running on multiplie
-computational nodes. The speedup is probably the value the most interesting. It represents what is
-the acceleration between 1-node computation and $N$-node computation. 
-
-Two experience have been done on Astral, the same algorithm has been executed twice with a different
-precision tolerance, the first one has been done with a low precision: $10^{-4}$ and the second with
-a high precision: $10^{-6}$. Both of them have been run with 1, 2, 4, 8, 16 and 32 processors. The
-algorithm used is Red-Black ordering Gauss-Seidel with a domain splitted in horizontal strips.
-
-\subsubsection{Parallel execution with a low precision}
-
-\input speedup
-
-The speedup increase linearly, but it's slower than the optimal solution. Actually we could expect:
+The best speedup which is expectable from this parallel computation is
 
 $$S_p = N_p$$
 
@@ -411,10 +377,49 @@ With
   \item{$N_p$: Number of processors}
 \end{itemize}
 
-Instead of this perfect result, the speedup for $N_p = 32$ is only 17. This difference can be easily
-explained. When there are more ndoes, there are more data exchanges. These are expensive and cost
-a lot of time (processors cycles and networking latency). The above graph shows the aspects of the results,
-underneath are some more detailled data.
+However, this result is really difficult to reach because the nodes have to communicate with each other.
+The following performance model can be defined:
+
+\[
+S_p = \frac{T_{cr} + T_{cb} + T_{exr} + T_{exb}}{N_p}
+\]
+
+\begin{itemize}
+  \item{$T_{cr}$: Red value computation}
+  \item{$T_{exr}$: Red value halo exchange}
+  \item{$T_{cb}$: Black value computation}
+  \item{$T_{exb}$: Black value halo exchange}
+\end{itemize}
+
+When $N_p = 1$\hspace{2em}$T_{exr} + T_{exb} \rightarrow 0$
+
+\subsection{Parallel execution on Astral}
+
+The main goal of high performance computing is to parallelize an algorithm to obtain results as fast
+as possible. A parallel algorithm may be slower that the original algorithm if only one processor is
+used, however this one is designed to able to reach high performance when it is running on multiple
+computational nodes. The speedup is probably the value the most interesting. It represents what is
+the acceleration between 1-node computation and $N$-node computation. 
+
+Two experiences have been done on Astral, the same algorithm has been executed twice with a different
+precision tolerance, the first one has been done with a low precision: $10^{-4}$ and the second with
+a high precision: $10^{-6}$. Both of them have been run with 1, 2, 4, 8, 16 and 32 processors. The
+algorithm used is Red-Black ordering Gauss-Seidel with a domain splitted in horizontal strips.
+
+\subsubsection{Parallel execution with a low precision}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{./images/lprecision.png}
+\caption{Speedup when the mesh size and the number of CPUs are varying (low precision)}
+\end{figure}
+
+Instead of the perfect result, the speedups are lower, when $N_p = 32$, the speedup is only 17. This difference can be easily
+explained. When there are more nodes, there are more data exchanges. These are expensive and cost
+a lot of time (processors cycles and networking latency). However, when the mesh is larger, each node
+has more calculations to do and there is a important speedup improvement.
+
+The underneath table gives more details for the case $N_p = 32$.
 
 \vspace{2em}
 \hspace{-5em}
@@ -431,7 +436,7 @@ Average error with analytical & 10.5\% & 8.3\% & 6.6\% & 5.1\% & 3.8\% & 3.4\%
 \vspace{1em}
 
 The speedup evolution shows that its evolution is quite stable, not as fast as expected, but stable: $\approx 1.75$. However,
-as this value is not two, we are going further and further from the optimal as it is illustrated by the difference with the linear speedup.
+as this value is not two, the results are going further and further from the optimal as it is illustrated by the difference with the linear speedup.
 
 It is something to have a good speedup, but it's necessary to check if the results are good enough. All the previous figures have been done
 with a mesh of $1024 \times 1024$. With this precision, the average error is really high. Having results which are 10\% different from the
@@ -443,7 +448,14 @@ so more the domain is divided, the slower it will reach the acceptance step. Thi
 
 The only difference in these results is the tolerance parameter, nothing else has changed.
 
-\input speedup2
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{./images/hprecision.png}
+\caption{Speedup when the mesh size and the number of CPUs are varying (high precision)}
+\end{figure}
+
+The lines of this graph have exactly the same shape as the previous experience but the speedus are
+really much more higher. Whatever is the size of the mesh it is higher as there are much more iterations.
 
 \vspace{2em}
 \hspace{-5em}
@@ -459,22 +471,53 @@ Average error with analytical & 0.22\% & 0.24\% & 0.44\% & 0.65\% & 1.55\% & 3.2
 \captionof{table}{Data analysis of the obtained speedups with a $10^{-6}$ precision}
 \vspace{1em}
 
-In this case the results are particularly good, we reach a super-linear speedup. For 1, 2 and 4 processors,
-the results are identical as the previous experience, the speedup is strongly increasing. ($> \times2$).
+In this case the results are particularly good, a super-linear speedup has been reached. For 2 and 4 processors,
+the results are identical as the previous experience, the speedup is strongly increasing afterwards. ($> \times2$).
 
 \vspace{1em}
-These calculations are done with a higher precision, the logical consequence is that the whole computation
+These calculations have been done with a higher precision, the logical consequence is that the whole computation
 is longer, the number of iterations more important and mainly the average error compare to the analytical solution
-is closer to 0, it is what we are expecting.
+is closer to 0, it is what was expecting. The aspect is still the expecting result too:
+
+\begin{figure}
+\centering
+\includegraphics[width=0.75\textwidth]{1024_mesh.png}
+\caption{3D drawing of a 1024 mesh}
+\end{figure}
 
 \vspace{1em}
-How to explain such a high speedup: as we are using horizontal strips, the domain is decomposed in large horizontal subdomains.
+How to explain such a high speedup: as horizontal strips are used, the domain is decomposed in large horizontal subdomains.
 With 32 processors it means, that each process is working on a $32\times1024$ matrix. The \textit{double} is 8 bytes long,
-so each lines is weighting 8KB, and the matrix itself 256KB. The Astral HPC uses processors with 32KB of L1 cache and 4MB of
-L2 cache, it means that the whole matrix can be store in them. There are no need to use the RAM. When the algorithm
+so each line is weighting 8KB, and the matrix itself 256KB. The Astral HPC uses processors with 32KB of L1 cache and 4MB of
+L2 cache, it means that the whole matrix can be stored in them. There are no need to use the RAM. When the algorithm
 is running on 1 CPU, the whole matrix can't fit in this cache and data exchanges from the RAM are necessary. Those slow down
 the global operation.
 
+\section{Methodology}
 
+All my source code have been regularly commited using GIT pushed on Github to a save in case of my laptop encounters any problem.
+I also use GIT to transfer everything from it to Astral to execute the different experiences. To debug the code and analyse
+partial results, I've developed some functions able to print and to do some operations on the matrices to be sure the data
+are valid and that the data exchange are correct too.
+All my results come from Astral even the results with a few processors. The reason is that I wanted an uniform envrionment
+of execution. There is no interest to run computation from different kinds of processor. The caches, the frequence must be identical
+to have a good comparaison of the results.
+To draw the differents graphs (2D and 3D) i've used gnuplot with its pm3d mod which enable isotherm drawing on 3D graphs. (The
+files which are used to generate those are in the "results" folder. I've used \textbf{ruby} to write the utility used to
+compare the results. Not because this language is great to manipulate numbers, but because I'm used to it.
+
+\section*{Conclusion}
+
+To conclude, we've seen that it's possible to reach a good speedup without sacrifying the precision of the results. But there
+are still a lot of possible improvements for a further study. The more logical is to investigate why does the speedup increase
+so much when the amount of computation is getting bigger. We can suppose things but that's nothing really precise and absolute.
+Aside, it may be great to continue increasing the number of CPUs and analyse the parallelism limits. Finally, it must be
+a great to compare these results with another domain division method. To know if there is really a big difference between strips
+and squares about cache usage or halo data exchange.
+
+As we have to fill the module evaluation questionnaire before working on this assignment, I would like to give point of view over
+this work. According to me, it was great to introduce the power of OpenMPI and the use of a supercomputer like Astral. That something
+most of us haven't done before and it is really interesting to do. That's also a good opportunity to see how a parallel code can
+be difficult to debug if it was not well thought from the beginning and if the mathematical model hasn't been set up correctly.
 
 \end{document}
